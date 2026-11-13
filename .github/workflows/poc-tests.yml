@@ -26,6 +26,8 @@ jobs:
         run: python -m pip install -e ".[test,database]"
       - name: Fast deterministic and worker-safety tests
         run: python -m pytest -q -ra -m "not full_registry" --junitxml=pytest-fast.xml tests
+      - name: Bounded repeatability smoke (3 trusted worker rounds)
+        run: python -m mt_iam.poc.repeatability --repeats 3 --round-timeout 20 --id POC-G01-03 --report poc-repeatability.json
       - name: Full 52-POC isolated registry integration gate
         run: python -m pytest -q -ra -m full_registry --junitxml=pytest-full-registry.xml tests
       - name: Ruff static style checks
@@ -46,6 +48,7 @@ jobs:
             poc-platform-v03-results.json
             pytest-fast.xml
             pytest-full-registry.xml
+            poc-repeatability.json
           if-no-files-found: ignore
 
 # A CI job PASS validates only synthetic/local checks, not OIDC/Supabase/Cloud Run.
