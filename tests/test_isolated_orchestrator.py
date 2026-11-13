@@ -106,6 +106,7 @@ def test_process_cleanup_of_owned_worker():
     assert process.poll() is not None
 
 
+@pytest.mark.full_registry
 def test_full_registry_isolated_run_preserves_non_certification():
     """Execute actual worker processes and keep external blockers explicit."""
     from mt_iam.poc.platform import report
