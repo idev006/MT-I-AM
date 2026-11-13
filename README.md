@@ -78,3 +78,17 @@ Detailed design files are proposed specifications. The earlier Architecture Brie
 The first **source-code scaffold** is now in this repository: [`pyproject.toml`](pyproject.toml), [FastAPI health application](src/mt_iam/api/app.py), [typed config](src/mt_iam/core/config.py), [Path Manager](src/mt_iam/core/paths.py), [foundation pytest tests](tests/test_poc_foundation.py), and [Dockerfile](Dockerfile).
 
 **Start here on a Windows PC:** [Local POC Lab Quickstart](docs/poc/LOCAL_POC_LAB_QUICKSTART_v0.1.md). It gives repeatable local environment, test and Docker commands. **Important:** the code has been saved, but local execution/CI, Cloud Run, PostgreSQL, OIDC and security verification remain **NOT RUN**. The 52 POC registry contains planned experiments, not 52 completed software modules. Do not deploy the scaffold as an identity provider.
+
+## Local-first POC Lab v0.2 — executed and synchronized (2026-11-13)
+Code was first assembled and tested in an isolated Python environment, then the verified foundation files were synchronized to this repository. **Local evidence:** [8 passing synthetic tests and blocked Supabase probe](docs/poc/LOCAL_POC_EXECUTION_EVIDENCE_v0.2.md). [Python project metadata](pyproject.toml) · [DB-only SQLAlchemy adapter](src/mt_iam/adapters/database.py) · [one-shot PostgreSQL probe](src/mt_iam/adapters/probe.py) · [SQLite scoped tests](tests/test_database.py) · [sanitized environment example](.env.example).
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[test,database]"
+python -m pytest -q
+python -m ruff check .
+# With an approved secret set in your environment, not in GitHub:
+python -m mt_iam.adapters.probe
+```
+**Do not count local SQLite test PASS as PostgreSQL/Supabase PASS.** A live Supabase connection, Windows execution and Ruff validation have not yet been executed by this workflow. This is a POC-only HTTP/DB scaffold, not an identity provider.
