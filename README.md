@@ -96,3 +96,8 @@ python -m ruff check .
 python -m mt_iam.adapters.probe
 ```
 **Do not count local SQLite test PASS as PostgreSQL/Supabase PASS.** A live Supabase connection, Windows execution and Ruff validation have not yet been executed by this workflow. This is a POC-only HTTP/DB scaffold, not an identity provider.
+
+## Extensible POC Control Plane v0.3 — local prototype / GitHub promotion pending (2026-11-13)
+A **dynamic TOML-based POC Registry and bounded POC Orchestrator** has been prototyped and tested in the local analysis environment. **Promotion of its v0.3 source files to this repository is not yet complete**: follow [tracking Issue #69](https://github.com/idev006/MT-I-AM/issues/69). The current GitHub `src/mt_iam/poc` v0.1 runner remains the published implementation until the reviewed v0.3 code is committed.
+
+Local evidence (not CI): Python 3.13.5, 74 pytest tests passed; 52-ID TOML registry validated; optional 53rd ID registered in test without Python registry changes; targeted isolated orchestrator run showed 1 LOCAL_CHECK_PASS / 1 BLOCKED. A full 52 subprocess orchestrator run was **not completed within the local execution window**. No OIDC conformance, Supabase integration or Cloud Run runtime has passed. **Do not confuse local control-plane tests with complete POC PASS**.
