@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from mt_iam.poc.platform import POCRegistry, POCOrchestrator, IsolatedPOCOrchestrator, report, write_report
 from mt_iam.poc.settings import PlatformSettings
+from mt_iam.poc.resource_budget import WorkerBudget
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -27,6 +28,7 @@ def main(argv: list[str] | None = None) -> int:
             max_workers=settings.orchestrator.get("max_parallel", 1),
             timeout_seconds=settings.orchestrator.get("timeout_seconds", 15),
             fail_fast=settings.orchestrator.get("fail_fast", False),
+            budget=WorkerBudget(**settings.resources),
         )
     else:
         orch = POCOrchestrator(registry)
