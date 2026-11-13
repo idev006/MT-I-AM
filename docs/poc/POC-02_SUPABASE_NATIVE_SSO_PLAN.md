@@ -1,3 +1,5 @@
+> **SUPERSEDED / HISTORICAL — DO NOT IMPLEMENT.** Replaced by [ADR-006](../adr/ADR-006_PROVIDER_INDEPENDENT_GAS_POSTGRES_ONLY.md), [Target Architecture v0.4](../architecture/TARGET_ARCHITECTURE_v0.4.md), and [POC-03](../poc/POC-03_PROVIDER_INDEPENDENT_SSO.md). Supabase is PostgreSQL storage ONLY; Supabase Auth/OAuth Server is prohibited as a MT-IAM dependency.
+
 # POC-02 — Native Supabase OIDC SSO Feasibility Plan
 Status: NOT RUN. Date 2026-11-13.
 Technical candidate: Supabase OAuth 2.1 Server public beta as OIDC provider; GAS MT-IAM domain backend; Supabase PostgreSQL personnel SSOT.
