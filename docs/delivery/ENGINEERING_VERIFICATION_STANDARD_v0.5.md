@@ -1,3 +1,5 @@
+> **EXECUTION STATE (2026-11-13):** Source code now exists for a [Python 52-case POC check harness](../../src/mt_iam/poc/) with [65 local pytest checks passing](../poc/POC52_EXECUTION_REPORT_v0.1.md), 30 LOCAL_CHECK_PASS and 22 explicit BLOCKED. Older 'code absent' statements below are historical pre-scaffold gate notes. No live OIDC/Cloud Run/Supabase verification and no production release approval.
+
 # MT-IAM Engineering & Verification Standard v0.5
 
 **Status: PROPOSED / engineering policy pending measured implementation. R3.** 2026-11-13.
