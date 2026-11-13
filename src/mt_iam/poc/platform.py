@@ -261,7 +261,7 @@ class IsolatedPOCOrchestrator:
 
 def report(results: list[RunResult], *, config_path: Path | None = None) -> dict:
     status = {key: sum(r.status == key for r in results) for key in
-              ("LOCAL_CHECK_PASS", "BLOCKED", "NOT_RUN", "SKIPPED", "FAIL")}
+              ("LOCAL_CHECK_PASS", "BLOCKED", "NOT_RUN", "SKIPPED", "FAIL", "TIMEOUT", "CANCELLED")}
     config_hash = sha256(config_path.read_bytes()).hexdigest() if config_path else None
     return {"schema_version": 1,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
