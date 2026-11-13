@@ -8,7 +8,7 @@ The 52-item isolated-worker integration test uses real subprocesses and takes ma
 ## Changes
 - [`tests/test_isolated_orchestrator.py`](../../tests/test_isolated_orchestrator.py): mark the test that executes all 52 registry items with `@pytest.mark.full_registry`.
 - [`pyproject.toml`](../../pyproject.toml): register `full_registry` marker so `--strict-markers` can be adopted later.
-- [`poc-tests.yml`](../../.github/workflows/poc-tests.yml): execute two separate hard-failing CI steps: `-m "not full_registry"` and `-m full_registry`. Matrix: Ubuntu/Windows × Python 3.12/3.13. CI outcome on final SHA is not yet confirmed.
+- [`poc-tests.yml`](../../.github/workflows/poc-tests.yml): execute two separate hard-failing CI steps: `-m "not full_registry"` and `-m full_registry` and upload distinct `pytest-fast.xml` / `pytest-full-registry.xml` JUnit result artifacts with `if: always()`. Matrix: Ubuntu/Windows × Python 3.12/3.13. CI outcome on final SHA is not yet confirmed.
 - [`test-local.ps1`](../../scripts/test-local.ps1) and [`test-local.sh`](../../scripts/test-local.sh): invoke the same two gates before invoking the POC runner.
 
 ## Executed local evidence
