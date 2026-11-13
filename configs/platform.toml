@@ -8,9 +8,10 @@ path = "configs/poc_registry.toml"
 allow_new = true
 
 [poc.orchestrator]
-execution_mode = "sequential"
-max_parallel = 1
+execution_mode = "isolated"
+max_parallel = 2
 fail_fast = false
+timeout_seconds = 15
 include_dependencies = true
 
 [poc.evidence]
