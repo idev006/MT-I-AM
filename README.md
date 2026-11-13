@@ -1,4 +1,9 @@
-> **CURRENT APPROVED DIRECTION (v0.4, 2026-11-13):** MT-IAM is **Provider-Independent**. Google Apps Script is the initial domain backend. **Supabase is PostgreSQL database hosting ONLY; Supabase Auth/OAuth Server must NOT be used.** All independent apps connect through MT-ISP/OIDC and manage their own application permissions. The OIDC protocol engine/HTTP session implementation remains an R3 POC decision (NOT RUN). Older v0.3 SNIA materials below are historical and SUPERSEDED.
+> **CANONICAL ARCHITECTURE (2026-11-13): MT-IAM Python-first / cloud-agnostic.** [ADR-007](docs/adr/ADR-007_PYTHON_FIRST_PORTABLE_MODULAR_CORE.md) supersedes the GAS-primary runtime decision in ADR-006. Initial deployment is Google Cloud Run using standard OCI containers; domain code must run elsewhere. Supabase remains **PostgreSQL database hosting only** (NO Supabase Auth). The OIDC authorization-server implementation is **not yet selected**; protocol, security, load and portability tests are NOT RUN; production release BLOCKED.
+>
+> **Current SSOT documents:** [Target Architecture v0.5](docs/architecture/TARGET_ARCHITECTURE_v0.5_PYTHON_FIRST.md) · [Actors / Use Cases / APIs / States / Sequences v0.5](docs/architecture/SYSTEM_MODEL_v0.5.md) · [Engineering & Verification Standard v0.5](docs/delivery/ENGINEERING_VERIFICATION_STANDARD_v0.5.md) · [ADR-007](docs/adr/ADR-007_PYTHON_FIRST_PORTABLE_MODULAR_CORE.md).
+>
+> **History:** v0.4 GAS-first and POC-03 GAS-assumptions are retained for traceability and superseded by the Python-first target. No deployed Python implementation or passed test evidence is claimed.
+
 
 ## Current architecture v0.4
 - [Target Architecture v0.4](docs/architecture/TARGET_ARCHITECTURE_v0.4.md)
