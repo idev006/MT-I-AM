@@ -101,3 +101,20 @@ python -m mt_iam.adapters.probe
 A **dynamic TOML-based POC Registry and bounded POC Orchestrator** has been prototyped and tested in the local analysis environment. **Promotion of its v0.3 source files to this repository is not yet complete**: follow [tracking Issue #69](https://github.com/idev006/MT-I-AM/issues/69). The current GitHub `src/mt_iam/poc` v0.1 runner remains the published implementation until the reviewed v0.3 code is committed.
 
 Local evidence (not CI): Python 3.13.5, 74 pytest tests passed; 52-ID TOML registry validated; optional 53rd ID registered in test without Python registry changes; targeted isolated orchestrator run showed 1 LOCAL_CHECK_PASS / 1 BLOCKED. A full 52 subprocess orchestrator run was **not completed within the local execution window**. No OIDC conformance, Supabase integration or Cloud Run runtime has passed. **Do not confuse local control-plane tests with complete POC PASS**.
+
+## POC Platform v0.2 — extensible Registry + Orchestrator + TOML (2026-11-13)
+**Source now committed:** [Platform Registry / Orchestrator](src/mt_iam/poc/platform.py), [CLI](src/mt_iam/poc/platform_cli.py), [typed TOML validator](src/mt_iam/poc/settings.py), [project TOML settings](configs/platform.toml), [POC registry TOML](configs/poc_registry.toml), [new tests](tests/test_poc_platform.py), [architecture & handoff design](docs/poc/POC_PLATFORM_DESIGN_v0.2.md).
+
+```powershell
+python -m pip install -e ".[test,database]"
+python -m pytest -q
+python -m mt_iam.poc.platform_cli --config configs/platform.toml --dry-run
+python -m mt_iam.poc.platform_cli --config configs/platform.toml --report artifacts/poc-results/local.json
+python -m mt_iam.poc.platform_cli --config configs/platform.toml --strict
+```
+
+**Local proof:** 79 pytest tests PASS (Python 3.13.5, isolated test environment), POC runner 30 `LOCAL_CHECK_PASS` + 22 `BLOCKED` + 1 disabled new POC `SKIPPED`; strict run returns exit 2 as designed. Source synchronization verified through GitHub contents. **No full POC is independently certified PASS; no actual Supabase/OIDC/Cloud Run validation.**
+
+**Coexisting roadmap:** [Issue #69](https://github.com/idev006/MT-I-AM/issues/69) tracks the more advanced v0.3 design (subprocess deadlines/bounded scheduling, reviewer approvals, clean cross-platform CI). v0.2 is the committed, sequential fail-closed baseline and **does not claim to fulfill those v0.3 requirements**. An earlier note above about v0.3 promotion pending is historical and should not be interpreted as a denial of this newly committed v0.2 subset.
+
+**SSOT:** GitHub Issues/Project remains the *only live work-status authority*. Execution JSON reports are immutable evidence snapshots, not independent Kanban tracking files.
