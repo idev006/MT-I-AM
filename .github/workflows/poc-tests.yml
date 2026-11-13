@@ -24,8 +24,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install test and database dependencies
         run: python -m pip install -e ".[test,database]"
-      - name: Local deterministic and isolated tests
-        run: python -m pytest -v tests
+      - name: Fast deterministic and worker-safety tests
+        run: python -m pytest -q -ra -m "not full_registry" tests
+      - name: Full 52-POC isolated registry integration gate
+        run: python -m pytest -q -ra -m full_registry tests
       - name: Ruff static style checks
         run: python -m ruff check src tests
       - name: 52-item local-only registry checks
