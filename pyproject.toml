@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mt-iam"
-version = "0.0.2"
+version = "0.1.0"
 description = "MT-IAM POC local lab; NOT a production identity provider"
 requires-python = ">=3.12,<3.14"
 dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "pydantic-settings>=2.6,<3"]
