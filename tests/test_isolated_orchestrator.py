@@ -191,3 +191,47 @@ def test_report_counts_timeout_and_cancellation():
     assert result["summary"]["TIMEOUT"] == 1
     assert result["summary"]["CANCELLED"] == 1
     assert result["full_poc_verification"] == "NOT_CERTIFIED"
+
+@pytest.mark.skipif(__import__('os').name == 'nt', reason='POSIX process group test')
+def test_successful_worker_still_cleans_descendants(monkeypatch, tmp_path):
+    """A worker can exit 0 while leaving a child in its process group."""
+    import os
+    import subprocess
+    import sys
+    from mt_iam.poc import isolated
+
+    child_pid = tmp_path / 'child.pid'
+    script = (
+        'import subprocess,sys,json;'
+        'p=subprocess.Popen([sys.executable,"-c","import time;time.sleep(30)"],'
+        'stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);'
+        f'open({str(child_pid)!r},"w").write(str(p.pid));'
+        'print(json.dumps({"status":"LOCAL_CHECK_PASS","detail":"synthetic"}),flush=True)'
+    )
+    original = subprocess.Popen
+
+    def worker(_args, **kwargs):
+        return original([sys.executable, '-c', script], **kwargs)
+
+    monkeypatch.setattr(isolated, '_spawn_worker', worker)
+    try:
+        outcome = isolated.run_isolated('POC-G01-03', timeout_seconds=5)
+        assert outcome.status == 'LOCAL_CHECK_PASS'
+        assert child_pid.exists()
+        pid = int(child_pid.read_text())
+        # A killed descendant may briefly remain a zombie while being reaped.
+        proc_stat = Path(f'/proc/{pid}/stat')
+        deadline = time.monotonic() + 2
+        while proc_stat.exists() and time.monotonic() < deadline:
+            if proc_stat.read_text().split()[2] == 'Z':
+                break
+            time.sleep(0.025)
+        if proc_stat.exists():
+            assert proc_stat.read_text().split()[2] == 'Z'
+    finally:
+        if child_pid.exists():
+            import signal
+            try:
+                os.kill(int(child_pid.read_text()), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
