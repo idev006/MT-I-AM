@@ -70,3 +70,6 @@ Detailed design files are proposed specifications. The earlier Architecture Brie
 - [POC-02 — Supabase Native SSO Plan](docs/poc/POC-02_SUPABASE_NATIVE_SSO_PLAN.md)
 
 **Critical trade-off:** MT-IAM owns domain and data governance but delegates OAuth/OIDC protocol execution to Supabase Auth (self-hostable components exist; portability/credential migration must be tested). Production status remains BLOCKED.
+
+## GitHub Issues execution tracker — active SSOT (2026-11-13)
+**[Open live MT-IAM Issues](https://github.com/idev006/MT-I-AM/issues)** — 12 domain Epic Issues [#1–#12](https://github.com/idev006/MT-I-AM/issues/1), five first-wave experiment Issues ([OIDC #13](https://github.com/idev006/MT-I-AM/issues/13), [Testing #14](https://github.com/idev006/MT-I-AM/issues/14), [Runtime #15](https://github.com/idev006/MT-I-AM/issues/15), [Database #16](https://github.com/idev006/MT-I-AM/issues/16), [Pooling #17](https://github.com/idev006/MT-I-AM/issues/17)). The graphical GitHub Projects board is **NOT YET CREATED/VERIFIED**: [activation task #18](https://github.com/idev006/MT-I-AM/issues/18) gives exact one-board setup and acceptance checks. The other 47 POCs remain in the Master Registry, not duplicate open issues. Work items start in Backlog; no POC PASS or live delivery percentage claimed.
