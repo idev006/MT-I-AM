@@ -118,3 +118,76 @@ def test_full_registry_isolated_run_preserves_non_certification():
     assert counts['LOCAL_CHECK_PASS'] == 30
     assert counts['BLOCKED'] == 22
     assert report(outputs)['full_poc_verification'] == 'NOT_CERTIFIED'
+
+
+def test_worker_env_excludes_sensitive_tokens(monkeypatch):
+    from mt_iam.poc.isolated import _safe_worker_env
+    monkeypatch.setenv("MT_IAM_DATABASE_URL", "postgresql://private")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "private")
+    monkeypatch.setenv("PYTHONIOENCODING", "utf-8")
+    env = _safe_worker_env()
+    assert "MT_IAM_DATABASE_URL" not in env
+    assert "AWS_SECRET_ACCESS_KEY" not in env
+    assert env["PYTHONIOENCODING"] == "utf-8"
+
+
+def test_cancel_started_process(monkeypatch):
+    import subprocess
+    import sys
+    from mt_iam.poc import isolated
+    original = subprocess.Popen
+
+    def sleeper(_args, **kwargs):
+        return original([sys.executable, "-c", "import time; time.sleep(10)"], **kwargs)
+
+    monkeypatch.setattr(isolated, "_spawn_worker", sleeper)
+    event = threading.Event()
+    timer = threading.Timer(0.15, event.set)
+    timer.start()
+    try:
+        start = time.monotonic()
+        result = isolated.run_isolated("POC-G01-03", timeout_seconds=3, cancel_event=event)
+        assert result.status == "CANCELLED"
+        assert time.monotonic() - start < 3
+    finally:
+        timer.join()
+
+
+def test_timeout_terminates_started_process(monkeypatch):
+    import subprocess
+    import sys
+    from mt_iam.poc import isolated
+    original = subprocess.Popen
+
+    def sleeper(_args, **kwargs):
+        return original([sys.executable, "-c", "import time; time.sleep(10)"], **kwargs)
+
+    monkeypatch.setattr(isolated, "_spawn_worker", sleeper)
+    start = time.monotonic()
+    result = isolated.run_isolated("POC-G01-03", timeout_seconds=0.2)
+    assert result.status == "TIMEOUT"
+    assert time.monotonic() - start < 3
+
+
+def test_worker_output_capped_on_disk(monkeypatch):
+    import subprocess
+    import sys
+    from mt_iam.poc import isolated
+    original = subprocess.Popen
+
+    def noisy(_args, **kwargs):
+        return original([sys.executable, "-c", 'import sys; sys.stdout.write("X" * 80000)'], **kwargs)
+
+    monkeypatch.setattr(isolated, "_spawn_worker", noisy)
+    result = isolated.run_isolated("POC-G01-03", timeout_seconds=5)
+    assert result.status == "FAIL"
+    assert "output exceeded" in result.detail
+
+
+def test_report_counts_timeout_and_cancellation():
+    from mt_iam.poc.platform import RunResult, report
+    result = report([RunResult("POC-G01-01", "TIMEOUT", "timeout"),
+                     RunResult("POC-G01-02", "CANCELLED", "cancelled")])
+    assert result["summary"]["TIMEOUT"] == 1
+    assert result["summary"]["CANCELLED"] == 1
+    assert result["full_poc_verification"] == "NOT_CERTIFIED"
