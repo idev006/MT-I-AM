@@ -1,6 +1,13 @@
+> **CURRENT APPROVED DIRECTION (v0.4, 2026-11-13):** MT-IAM is **Provider-Independent**. Google Apps Script is the initial domain backend. **Supabase is PostgreSQL database hosting ONLY; Supabase Auth/OAuth Server must NOT be used.** All independent apps connect through MT-ISP/OIDC and manage their own application permissions. The OIDC protocol engine/HTTP session implementation remains an R3 POC decision (NOT RUN). Older v0.3 SNIA materials below are historical and SUPERSEDED.
+
+## Current architecture v0.4
+- [Target Architecture v0.4](docs/architecture/TARGET_ARCHITECTURE_v0.4.md)
+- [ADR-006 — Approved Provider Independence and Supabase DB Only](docs/adr/ADR-006_PROVIDER_INDEPENDENT_GAS_POSTGRES_ONLY.md)
+- [POC-03 — Provider-Independent SSO](docs/poc/POC-03_PROVIDER_INDEPENDENT_SSO.md)
+
 # MT-IAM — MT Identity & Access Management
 
-Status: Architecture Foundation Draft v0.1 — 13 November 2026.
+Status: v0.4 direction approved; detailed protocol implementation POC pending — 13 November 2026.
 
 MT-IAM is the central Identity and Single Sign-On platform for MT Agency Super App Framework. Independent applications can use any team, language, database, framework or host. They must conform to a published integration and security protocol.
 
