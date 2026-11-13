@@ -25,9 +25,9 @@ jobs:
       - name: Install test and database dependencies
         run: python -m pip install -e ".[test,database]"
       - name: Fast deterministic and worker-safety tests
-        run: python -m pytest -q -ra -m "not full_registry" tests
+        run: python -m pytest -q -ra -m "not full_registry" --junitxml=pytest-fast.xml tests
       - name: Full 52-POC isolated registry integration gate
-        run: python -m pytest -q -ra -m full_registry tests
+        run: python -m pytest -q -ra -m full_registry --junitxml=pytest-full-registry.xml tests
       - name: Ruff static style checks
         run: python -m ruff check src tests
       - name: 52-item local-only registry checks
@@ -44,6 +44,8 @@ jobs:
           path: |
             poc52-local-results.json
             poc-platform-v03-results.json
+            pytest-fast.xml
+            pytest-full-registry.xml
           if-no-files-found: ignore
 
 # A CI job PASS validates only synthetic/local checks, not OIDC/Supabase/Cloud Run.
