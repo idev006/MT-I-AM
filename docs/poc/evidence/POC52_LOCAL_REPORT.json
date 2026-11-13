@@ -1,0 +1,429 @@
+{
+  "generated_at_utc": "2026-11-13T06:49:59.884068+00:00",
+  "python": "3.13.5",
+  "disclaimer": "LOCAL_CHECK_PASS is not complete POC PASS nor production approval",
+  "summary": {
+    "LOCAL_CHECK_PASS": 30,
+    "BLOCKED": 22,
+    "FAIL": 0
+  },
+  "all_52_poc_verification": "NOT COMPLETE",
+  "results": [
+    {
+      "id": "POC-G01-01",
+      "group": "G01",
+      "title": "FastAPI in local OCI and Cloud Run",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "ASGI health responds locally; Docker and Cloud Run not exercised",
+      "duration_ms": 11.7
+    },
+    {
+      "id": "POC-G01-02",
+      "group": "G01",
+      "title": "Startup, readiness, SIGTERM and shutdown cleanup",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "ASGI lifespan exit confirmed; SIGTERM/container shutdown not exercised",
+      "duration_ms": 4.41
+    },
+    {
+      "id": "POC-G01-03",
+      "group": "G01",
+      "title": "Typed config, secret loading and environment isolation",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Typed config validation works; real secret manager not exercised",
+      "duration_ms": 0.81
+    },
+    {
+      "id": "POC-G01-04",
+      "group": "G01",
+      "title": "HTTPS, issuer/custom domain and revision routing",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "HTTPS issuer config accepted; domain/TLS/revision routing not verified",
+      "duration_ms": 0.3
+    },
+    {
+      "id": "POC-G02-01",
+      "group": "G02",
+      "title": "psycopg + SQLAlchemy connection to Supabase PostgreSQL",
+      "status": "BLOCKED",
+      "detail": "Needs approved Supabase PostgreSQL test connection and psycopg; local SQLite is not PostgreSQL evidence",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G02-02",
+      "group": "G02",
+      "title": "Alembic schema migrations and controlled recovery path",
+      "status": "BLOCKED",
+      "detail": "Needs controlled Alembic migrations on actual PostgreSQL, backup and recovery; no migration chain built yet",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G02-03",
+      "group": "G02",
+      "title": "Transactions, constraints and concurrent atomic writes",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "SQLite commit/rollback/unique constraint checked; PostgreSQL concurrency remains unverified",
+      "duration_ms": 23.54
+    },
+    {
+      "id": "POC-G02-04",
+      "group": "G02",
+      "title": "Runtime pooler compatibility and prepared statements",
+      "status": "BLOCKED",
+      "detail": "Needs Supabase transaction/session pooler testing with psycopg and actual connection metrics",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G02-05",
+      "group": "G02",
+      "title": "Backup/restore to independent PostgreSQL provider",
+      "status": "BLOCKED",
+      "detail": "Needs PostgreSQL backup export/restore to independently hosted provider",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G03-01",
+      "group": "G03",
+      "title": "Module boundaries and clean domain ports/adapters",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Core config/paths have no cloud or transport imports; whole-codebase boundary scan pending",
+      "duration_ms": 0.18
+    },
+    {
+      "id": "POC-G03-02",
+      "group": "G03",
+      "title": "Dependency injection with replaceable fake adapters",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Settings injection works; independent engine contracts still to implement",
+      "duration_ms": 2.17
+    },
+    {
+      "id": "POC-G03-03",
+      "group": "G03",
+      "title": "Use-case orchestrator coordinating engines",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "In-process enrollment/transition orchestration simulation; no real workflow integration",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G03-04",
+      "group": "G03",
+      "title": "Transactional outbox, idempotency and event contracts",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "SQLite uniqueness/transaction local outbox check; durable worker/ack/retry missing",
+      "duration_ms": 9.34
+    },
+    {
+      "id": "POC-G03-05",
+      "group": "G03",
+      "title": "Configuration SSOT, PathManager and engine lifecycle",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Config/path/scratch lifecycle validated locally; engine orchestration lifecycle pending",
+      "duration_ms": 0.58
+    },
+    {
+      "id": "POC-G04-01",
+      "group": "G04",
+      "title": "Identity enrollment and account lifecycle",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Synthetic account lifecycle transitions; proofing/real enrollment not implemented",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G04-02",
+      "group": "G04",
+      "title": "Password hashing and credential verification policies",
+      "status": "BLOCKED",
+      "detail": "Requires vetted password hashing component, credential policy, rate limiting and credential security review",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G04-03",
+      "group": "G04",
+      "title": "MFA, step-up and recovery security flow",
+      "status": "BLOCKED",
+      "detail": "Requires real tested MFA/recovery implementation and security/identity proofing review",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G04-04",
+      "group": "G04",
+      "title": "Session establishment, expiry and revocation",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Synthetic session expiration/revocation; browser cookies/session server not implemented",
+      "duration_ms": 0.03
+    },
+    {
+      "id": "POC-G04-05",
+      "group": "G04",
+      "title": "Suspension/deprovision race conditions",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Synthetic illegal-transition rejection; database concurrency/revocation propagation pending",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G05-01",
+      "group": "G05",
+      "title": "Evaluate maintained open-source OIDC authorization server",
+      "status": "BLOCKED",
+      "detail": "Needs authoritative comparison and evaluation of maintained OIDC provider implementations; do not choose by stub",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G05-02",
+      "group": "G05",
+      "title": "OIDC discovery, JWKS, key custody and rollover",
+      "status": "BLOCKED",
+      "detail": "Requires live standards-capable issuer, JWKS/keys and rollover drill",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G05-03",
+      "group": "G05",
+      "title": "Authorization code + PKCE, state, nonce and validation",
+      "status": "BLOCKED",
+      "detail": "Requires real OIDC authorization-code + PKCE provider and adversarial token/callback verification",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G05-04",
+      "group": "G05",
+      "title": "Cross-origin two-app SSO with independent permission checks",
+      "status": "BLOCKED",
+      "detail": "Requires two independent real apps and distinct origins with browser-based SSO",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G05-05",
+      "group": "G05",
+      "title": "Logout, revocation and replay/suspension behavior",
+      "status": "BLOCKED",
+      "detail": "Requires real session/token revocation and replay/disabled-user propagation tests",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G05-06",
+      "group": "G05",
+      "title": "OIDC conformance and adversarial protocol tests",
+      "status": "BLOCKED",
+      "detail": "Requires official OIDC conformance tests and reviewer evidence, not handcrafted fake JWTs",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G06-01",
+      "group": "G06",
+      "title": "Actor-role-permission and separation-of-duties matrix",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Application-local admission differs by app; full role matrix/policy missing",
+      "duration_ms": 0.0
+    },
+    {
+      "id": "POC-G06-02",
+      "group": "G06",
+      "title": "Scoped organization administration",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Synthetic scoped directory authorization; real DB/API permissions missing",
+      "duration_ms": 0.0
+    },
+    {
+      "id": "POC-G06-03",
+      "group": "G06",
+      "title": "Client app registration/approval and lifecycle",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Exact callback & approval synthetic guard; registration/secret lifecycle unimplemented",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G06-04",
+      "group": "G06",
+      "title": "App-local rejection after valid MT-IAM login",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Local admission model; live cross-app SSO still blocked",
+      "duration_ms": 0.0
+    },
+    {
+      "id": "POC-G07-01",
+      "group": "G07",
+      "title": "OpenAPI-first contracts and compatibility checks",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Health API OpenAPI generated; business contracts and cross-client compatibility pending",
+      "duration_ms": 2.35
+    },
+    {
+      "id": "POC-G07-02",
+      "group": "G07",
+      "title": "Versioning, errors, pagination and idempotency",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Basic HTTP statuses checked; pagination/versioning/idempotency API contracts missing",
+      "duration_ms": 5.71
+    },
+    {
+      "id": "POC-G07-03",
+      "group": "G07",
+      "title": "Machine API auth, throttling and dependency failure",
+      "status": "BLOCKED",
+      "detail": "Requires machine-to-machine credentials, protected API, rate-limit and fault injection",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G07-04",
+      "group": "G07",
+      "title": "Cross-language client interoperability and contract checks",
+      "status": "BLOCKED",
+      "detail": "Requires second-language client in separate runtime, interoperability and contract evidence",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G08-01",
+      "group": "G08",
+      "title": "Shared pool ownership and connection cleanup",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "SQLAlchemy local dispose path tested; pool pressure and Supabase connection metrics missing",
+      "duration_ms": 1.01
+    },
+    {
+      "id": "POC-G08-02",
+      "group": "G08",
+      "title": "Structured tasks, cancellation and deadlines",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Task cancellation cleanup witnessed; distributed task/job lifecycle pending",
+      "duration_ms": 0.71
+    },
+    {
+      "id": "POC-G08-03",
+      "group": "G08",
+      "title": "Per-engine concurrency limits, backpressure and bounded queues",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Local bounded admission and release, not production concurrency benchmark",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G08-04",
+      "group": "G08",
+      "title": "Memory/FD/connection stability across repeated workloads",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "200 local config allocations under 3MB net delta; no soak test/FD pool profiling",
+      "duration_ms": 232.51
+    },
+    {
+      "id": "POC-G08-05",
+      "group": "G08",
+      "title": "Crash/restart, durable jobs and partial-failure recovery",
+      "status": "BLOCKED",
+      "detail": "Requires process restart, durable worker and crash recovery tests against actual infrastructure",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G09-01",
+      "group": "G09",
+      "title": "Threat model and risk-selected OWASP ASVS controls",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "STRIDE category coverage vocabulary present; OWASP ASVS assessment NOT RUN",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G09-02",
+      "group": "G09",
+      "title": "Secrets/key custody, rotation and least privilege",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Settings repr omits secret field; no live key custody/rotation verified",
+      "duration_ms": 0.4
+    },
+    {
+      "id": "POC-G09-03",
+      "group": "G09",
+      "title": "PII minimization, retention, scoped access and audit integrity",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Synthetic account stores minimal fields; retention and real audit governance absent",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G09-04",
+      "group": "G09",
+      "title": "Abuse cases: credential attacks, CSRF, replay and privilege escalation",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "Unauthorized state sequence rejected in synthetic model; real auth/CSRF/replay not verified",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G10-01",
+      "group": "G10",
+      "title": "pytest unit/integration/contract harness",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "pytest installed and POC registry present; full CI execution separately verified",
+      "duration_ms": 0.18
+    },
+    {
+      "id": "POC-G10-02",
+      "group": "G10",
+      "title": "Ruff, typing, dependency audit and supply-chain checks",
+      "status": "BLOCKED",
+      "detail": "Needs actual Ruff/mypy/dependency audit, frozen lock/SBOM/license review at committed revision",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G10-03",
+      "group": "G10",
+      "title": "GitHub CI, OCI build, staging deploy and smoke gates",
+      "status": "BLOCKED",
+      "detail": "Needs GitHub Actions runner and OCI image/staging deployment execution; workflow YAML alone is not a pass",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G10-04",
+      "group": "G10",
+      "title": "Traceability IDs and automated evidence gates",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "52 unique IDs have local-check or explicit external-blocker implementation; evidence cross-links pending",
+      "duration_ms": 0.01
+    },
+    {
+      "id": "POC-G11-01",
+      "group": "G11",
+      "title": "Same OCI artifact on Cloud Run and non-Google Linux host",
+      "status": "BLOCKED",
+      "detail": "Needs build/run same OCI image on Cloud Run and non-Google host with actual observed results",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G11-02",
+      "group": "G11",
+      "title": "PostgreSQL migration away from Supabase",
+      "status": "BLOCKED",
+      "detail": "Needs Supabase PostgreSQL export and restore on independent PostgreSQL provider",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G11-03",
+      "group": "G11",
+      "title": "Issuer/keys/client continuity plus recovery drill",
+      "status": "BLOCKED",
+      "detail": "Needs stable issuer, signing key/client continuity and verified disaster-recovery drill",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G12-01",
+      "group": "G12",
+      "title": "Load, burst, soak and sign-in latency benchmark",
+      "status": "LOCAL_CHECK_PASS",
+      "detail": "100 synthetic health requests in 0.076s; NOT sign-in load/soak/SLO evidence",
+      "duration_ms": 81.0
+    },
+    {
+      "id": "POC-G12-02",
+      "group": "G12",
+      "title": "Structured telemetry, alerts and incident runbooks",
+      "status": "BLOCKED",
+      "detail": "Needs real telemetry export, alert delivery, operational ownership and incident drill",
+      "duration_ms": null
+    },
+    {
+      "id": "POC-G12-03",
+      "group": "G12",
+      "title": "Free-tier attribution, billing review and cost guardrails",
+      "status": "BLOCKED",
+      "detail": "Needs authoritative Google Cloud billing, free-tier and alert reports; local code cannot verify bills",
+      "duration_ms": null
+    }
+  ]
+}
