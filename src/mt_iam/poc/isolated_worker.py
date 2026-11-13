@@ -2,6 +2,7 @@
 from argparse import ArgumentParser
 import json
 from mt_iam.poc.checks import CHECKS, EXTERNAL
+from mt_iam.poc.windows_job import managed_worker_lifetime
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -12,8 +13,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "BLOCKED", "detail": "Unknown or external ID"}))
         return 2
     try:
-        detail = CHECKS[args.id]()
-        print(json.dumps({"status": "LOCAL_CHECK_PASS", "detail": str(detail)}))
+        # Attach to Windows Job Object before any trusted handler can spawn children.
+        with managed_worker_lifetime():
+            detail = CHECKS[args.id]()
+            print(json.dumps({"status": "LOCAL_CHECK_PASS", "detail": str(detail)}), flush=True)
         return 0
     except BaseException:
         print(json.dumps({"status": "FAIL", "detail": "Trusted handler failed"}))
