@@ -125,3 +125,6 @@ Architecture review: proposed. OIDC component comparison and protocol conformanc
 - https://owasp.org/www-project-application-security-verification-standard/
 - https://cloud.google.com/run/docs/container-contract
 - https://supabase.com/docs/guides/database/connecting-to-postgres
+
+## POC-first verification and onboarding (2026-11-13)
+The [Master POC Plan v1.0](../poc/MASTER_POC_PLAN_v1.0.md) governs architecture feasibility verification: 12 risk-aligned groups, 52 experiments, all NOT RUN at baseline. Teams shall begin at the [Handoff Playbook](../poc/POC_EXECUTION_AND_HANDOFF_v1.0.md) and pre-register criteria in the [POC Template](../poc/POC_SPEC_TEMPLATE_v1.0.md). No OIDC/library/cloud decision becomes production-approved merely because a prototype runs.
