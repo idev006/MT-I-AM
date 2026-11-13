@@ -1,3 +1,5 @@
+> **HISTORICAL POC PLAN — SUPERSEDED PHYSICAL ASSUMPTIONS (2026-11-13).** GAS-first tasks below are no longer the implementation target. See [ADR-007](../adr/ADR-007_PYTHON_FIRST_PORTABLE_MODULAR_CORE.md) and [Target v0.5](../architecture/TARGET_ARCHITECTURE_v0.5_PYTHON_FIRST.md). Retain protocol-security outcome tests but redesign POC for Python-based portable runtime. All tests remain NOT RUN.
+
 # POC-03 — Provider-Independent MT-IAM SSO Feasibility
 
 **Status: NOT RUN.** Date: 2026-11-13. Supersedes POC-02 (Supabase Native OAuth) and disallows Supabase Auth.
