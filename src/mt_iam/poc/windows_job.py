@@ -9,14 +9,16 @@ from __future__ import annotations
 from contextlib import contextmanager
 import os
 from typing import Iterator
+from mt_iam.poc.resource_budget import WorkerBudget
 
 
-def _create_current_process_job() -> tuple[object, object]:
+def _create_current_process_job(budget: WorkerBudget | None = None) -> tuple[object, object]:
     """Create a non-inheritable job and assign this worker before running a POC.
 
     Host job policies may reject nested job assignment; in that event fail
     closed rather than executing a worker with an uncontrolled child tree.
     """
+    budget = budget or WorkerBudget()
     if os.name != "nt":
         raise OSError("Windows Job Objects require Windows")
 
@@ -75,7 +77,10 @@ def _create_current_process_job() -> tuple[object, object]:
         raise ctypes.WinError(ctypes.get_last_error())
     try:
         config = EXTENDED_LIMIT()
-        config.BasicLimitInformation.LimitFlags = 0x00002000  # KILL_ON_JOB_CLOSE
+        # 0x200: job-wide committed memory; 0x2: per-process user CPU time.
+        config.BasicLimitInformation.LimitFlags = 0x00002000 | 0x00000200 | 0x00000002
+        config.BasicLimitInformation.PerProcessUserTimeLimit = budget.cpu_seconds * 10_000_000
+        config.JobMemoryLimit = budget.memory_mb * 1024 * 1024
         if not kernel.SetInformationJobObject(
             handle, 9, ctypes.byref(config), ctypes.sizeof(config)
         ):
@@ -92,12 +97,12 @@ _OWNED_JOBS: list[tuple[object, object]] = []
 
 
 @contextmanager
-def managed_worker_lifetime() -> Iterator[None]:
+def managed_worker_lifetime(budget: WorkerBudget | None = None) -> Iterator[None]:
     """Own child lifetime on Windows; POSIX remains parent process-group owned."""
     if os.name != "nt":
         yield
         return
-    kernel, handle = _create_current_process_job()
+    kernel, handle = _create_current_process_job(budget)
     # The current process itself is in the job. Closing its last handle here
     # would forcibly terminate this worker and turn success into a failure.
     # Hold the handle until process exit, when Windows closes it automatically
