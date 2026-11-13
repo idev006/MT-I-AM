@@ -1,3 +1,5 @@
+> **SUPERSEDED / HISTORICAL — DO NOT IMPLEMENT.** Replaced by [ADR-006](../adr/ADR-006_PROVIDER_INDEPENDENT_GAS_POSTGRES_ONLY.md), [Target Architecture v0.4](../architecture/TARGET_ARCHITECTURE_v0.4.md), and [POC-03](../poc/POC-03_PROVIDER_INDEPENDENT_SSO.md). Supabase is PostgreSQL storage ONLY; Supabase Auth/OAuth Server is prohibited as a MT-IAM dependency.
+
 # ADR-005 — Use Supabase Auth Native OAuth 2.1 / OIDC Server
 Date: 2026-11-13
 Status: PROPOSED — supersedes the *proposed implementation option* in ADR-003, not approved for production.
