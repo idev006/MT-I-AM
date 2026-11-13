@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from time import perf_counter
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event
+from mt_iam.poc.isolated import run_isolated
 from typing import Callable
 import json
 import re
@@ -188,6 +191,72 @@ class POCOrchestrator:
             results.append(output)
             current[spec.id] = output
         return results
+
+
+class IsolatedPOCOrchestrator:
+    """Dependency-aware, fail-closed worker scheduler with bounded fanout.
+
+    Local checks are not full POC certifications; remote checks remain BLOCKED.
+    """
+
+    def __init__(self, registry: POCRegistry, *, max_workers: int = 1,
+                 timeout_seconds: float = 15, fail_fast: bool = False):
+        if not 1 <= max_workers <= 4:
+            raise RegistryError("Worker count must be 1..4 for local POC lab")
+        if not 0.1 <= timeout_seconds <= 300:
+            raise RegistryError("Timeout must be 0.1..300 seconds")
+        self.registry = registry
+        self.max_workers = max_workers
+        self.timeout_seconds = timeout_seconds
+        self.fail_fast = fail_fast
+
+    def run(self, selected: list[str] | None = None, *, dry_run: bool = False,
+            cancel_event: Event | None = None) -> list[RunResult]:
+        plan = self.registry.plan(selected)
+        results: dict[str, RunResult] = {}
+        pending = {spec.id: spec for spec in plan}
+        cancelled = cancel_event if cancel_event is not None else Event()
+
+        def execute(spec: POCSpec) -> RunResult:
+            started = perf_counter()
+            out = run_isolated(spec.id, timeout_seconds=self.timeout_seconds,
+                               cancel_event=cancelled)
+            return RunResult(spec.id, out.status, out.detail,
+                             round((perf_counter() - started) * 1000, 2))
+
+        with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
+            while pending:
+                ready = [spec for spec in plan if spec.id in pending and
+                         all(dep in results for dep in spec.depends_on)]
+                if not ready:
+                    raise RegistryError("Missing resolved dependency while scheduling")
+                # Submit a bounded level; each result is committed before downstream work.
+                for start in range(0, len(ready), self.max_workers):
+                    batch = ready[start:start + self.max_workers]
+                    futures = {}
+                    for spec in batch:
+                        denied = next((d for d in spec.depends_on
+                                       if results[d].status != "LOCAL_CHECK_PASS"), None)
+                        if cancelled.is_set():
+                            results[spec.id] = RunResult(spec.id, "CANCELLED", "Run cancelled")
+                        elif not spec.enabled:
+                            results[spec.id] = RunResult(spec.id, "SKIPPED", "Disabled by policy")
+                        elif denied:
+                            results[spec.id] = RunResult(spec.id, "BLOCKED", f"Prerequisite {denied} not verified")
+                        elif dry_run:
+                            results[spec.id] = RunResult(spec.id, "NOT_RUN", "Dry-run")
+                        elif spec.mode == "external" or spec.id not in CHECKS:
+                            results[spec.id] = RunResult(spec.id, "BLOCKED", EXTERNAL.get(
+                                spec.id, "No reviewed local handler"))
+                        else:
+                            futures[spec.id] = pool.submit(execute, spec)
+                    for poc_id, future in futures.items():
+                        results[poc_id] = future.result()
+                        if self.fail_fast and results[poc_id].status in ("FAIL", "TIMEOUT"):
+                            cancelled.set()
+                    for spec in batch:
+                        pending.pop(spec.id)
+        return [results[spec.id] for spec in plan]
 
 
 def report(results: list[RunResult], *, config_path: Path | None = None) -> dict:
