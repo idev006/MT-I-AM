@@ -8,7 +8,8 @@ _FIELDS = {
     'project': {'name': str, 'environment': str},
     'poc.registry': {'path': str, 'allow_new': bool},
     'poc.orchestrator': {'execution_mode': str, 'max_parallel': int,
-                         'fail_fast': bool, 'include_dependencies': bool},
+                         'fail_fast': bool, 'include_dependencies': bool,
+                         'timeout_seconds': int},
     'poc.evidence': {'output_directory': str, 'redact_secrets': bool},
     'database': {'provider': str, 'pool_size': int, 'max_overflow': int,
                  'pool_timeout_seconds': int},
@@ -51,10 +52,14 @@ class PlatformSettings:
                 expected = _FIELDS[section][key]
                 if type(value) is not expected:
                     raise RegistryError(f'Expected {expected.__name__} at {section}.{key}')
-        if flattened['poc.orchestrator'].get('execution_mode', 'sequential') != 'sequential':
-            raise RegistryError('Parallel execution is not implemented; only sequential is safe')
-        if flattened['poc.orchestrator'].get('max_parallel', 1) != 1:
-            raise RegistryError('max_parallel must be 1 until bounded execution is implemented')
+        if flattened['poc.orchestrator'].get('execution_mode', 'sequential') not in ('sequential', 'isolated'):
+            raise RegistryError('Parallel execution requires isolated mode; valid modes: sequential, isolated')
+        limit = flattened['poc.orchestrator'].get('max_parallel', 1)
+        mode = flattened['poc.orchestrator'].get('execution_mode', 'sequential')
+        if not 1 <= limit <= (4 if mode == 'isolated' else 1):
+            raise RegistryError('Invalid bounded worker limit')
+        if not 1 <= flattened['poc.orchestrator'].get('timeout_seconds', 15) <= 300:
+            raise RegistryError('Timeout outside bounded range')
         if flattened['security'].get('allow_remote_execution', False):
             raise RegistryError('Remote execution must remain disabled in this lab')
         if flattened['security'].get('allow_dynamic_plugins', False):
