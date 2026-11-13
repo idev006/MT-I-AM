@@ -28,20 +28,22 @@ class IsolatedResult:
 
 def _terminate_tree(process: subprocess.Popen) -> None:
     """Kill an owned process group/tree and reap it, including on error paths."""
-    if process.poll() is None:
-        if os.name == "nt":
-            try:
-                subprocess.run(
-                    ["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                    stdin=subprocess.DEVNULL, capture_output=True, timeout=5, check=False,
-                )
-            except (OSError, subprocess.TimeoutExpired):
+    # On POSIX the group may still contain descendants after the leader exits.
+    # Workers run in dedicated sessions, so always clean up the owned group.
+    if os.name != "nt":
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    elif process.poll() is None:
+        try:
+            subprocess.run(
+                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                stdin=subprocess.DEVNULL, capture_output=True, timeout=5, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            if process.poll() is None:
                 process.kill()
-        else:
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
     try:
         process.wait(timeout=5)
     except subprocess.TimeoutExpired:
@@ -133,5 +135,5 @@ def run_isolated(
                 return IsolatedResult("FAIL", "Invalid worker detail")
             return IsolatedResult("LOCAL_CHECK_PASS", detail)
         finally:
-            if process.poll() is None:
-                _terminate_tree(process)
+            # Even a successful worker can leave a child behind.
+            _terminate_tree(process)
