@@ -1,0 +1,16 @@
+# Explicit settings for the 52 canonical items. New items default to BLOCKED.
+# Do NOT define arbitrary Python paths or shell commands here.
+[[poc]]
+id = "POC-G03-03"
+depends_on = ["POC-G03-02"]
+
+[[poc]]
+id = "POC-G05-04"
+depends_on = ["POC-G05-03", "POC-G06-04"]
+
+[[poc]]
+id = "POC-G99-01"
+title = "Example new experiment awaiting implementation and review"
+priority = "P2"
+mode = "external"
+enabled = false
