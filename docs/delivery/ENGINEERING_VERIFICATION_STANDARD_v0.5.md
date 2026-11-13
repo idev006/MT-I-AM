@@ -89,3 +89,6 @@ UC-AUTH-001 + UC-AUTH-002 with two independent applications in different stacks/
 - https://cloud.google.com/run/docs/container-contract
 - https://supabase.com/docs/guides/database/connecting-to-postgres
 - https://opentelemetry.io/docs/
+
+## POC execution baseline (2026-11-13)
+See [Master POC Registry](../poc/MASTER_POC_PLAN_v1.0.md), [Team Handoff Playbook](../poc/POC_EXECUTION_AND_HANDOFF_v1.0.md) and [Experiment Template](../poc/POC_SPEC_TEMPLATE_v1.0.md). These are plans, not PASS evidence. Every selected experiment must have a falsifiable hypothesis, test cases (positive/negative/failure), measured thresholds, resource cleanup, cloud cost review and linked ADR decision before promoting implementation.
