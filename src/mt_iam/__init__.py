@@ -1,3 +1,2 @@
-"""MT-IAM Python POC lab. No production identity provider implementation exists."""
-
-__version__ = "0.0.1"
+"""MT-IAM POC package. No production authentication implementation."""
+__version__ = "0.0.2"
