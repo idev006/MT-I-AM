@@ -11,3 +11,12 @@ secrets/
 credentials/
 *.sqlite
 *.db
+
+# Python POC lab
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
