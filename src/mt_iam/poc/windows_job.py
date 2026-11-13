@@ -88,6 +88,9 @@ def _create_current_process_job() -> tuple[object, object]:
         raise
 
 
+_OWNED_JOBS: list[tuple[object, object]] = []
+
+
 @contextmanager
 def managed_worker_lifetime() -> Iterator[None]:
     """Own child lifetime on Windows; POSIX remains parent process-group owned."""
@@ -95,8 +98,9 @@ def managed_worker_lifetime() -> Iterator[None]:
         yield
         return
     kernel, handle = _create_current_process_job()
-    try:
-        yield
-    finally:
-        # Closing the last Job Object handle forcibly ends associated children.
-        kernel.CloseHandle(handle)
+    # The current process itself is in the job. Closing its last handle here
+    # would forcibly terminate this worker and turn success into a failure.
+    # Hold the handle until process exit, when Windows closes it automatically
+    # and terminates any surviving child processes.
+    _OWNED_JOBS.append((kernel, handle))
+    yield
