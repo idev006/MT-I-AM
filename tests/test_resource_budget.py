@@ -64,3 +64,29 @@ else:
 '''
     result = subprocess.run([sys.executable, '-c', script], capture_output=True, timeout=6)
     assert result.returncode != 0
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows-only Job Object memory limit')
+def test_windows_job_memory_budget_is_enforced():
+    script = '''from mt_iam.poc.windows_job import managed_worker_lifetime
+from mt_iam.poc.resource_budget import WorkerBudget
+with managed_worker_lifetime(WorkerBudget(128, 10)):
+    try:
+        _data = bytearray(512 * 1024 * 1024)
+    except MemoryError:
+        raise SystemExit(74)
+    raise SystemExit(0)
+'''
+    result = subprocess.run([sys.executable, '-c', script], timeout=15, capture_output=True)
+    assert result.returncode != 0
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows-only Job Object CPU limit')
+def test_windows_job_cpu_budget_is_enforced():
+    script = '''from mt_iam.poc.windows_job import managed_worker_lifetime
+from mt_iam.poc.resource_budget import WorkerBudget
+with managed_worker_lifetime(WorkerBudget(512, 1)):
+    while True: pass
+'''
+    result = subprocess.run([sys.executable, '-c', script], timeout=10, capture_output=True)
+    assert result.returncode != 0
