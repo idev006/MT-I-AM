@@ -44,3 +44,13 @@ Architecture documents: written. Runtime SSO feasibility, protocol conformance, 
 
 ### Review gates
 Detailed design files are proposed specifications. The earlier Architecture Brief v0.2 was approved as the basis for writing them; no claim that a working solution or all detailed ADRs have separately passed security review.
+
+
+## Updated target architecture v0.3 (2026-11-13)
+**Latest preferred POC direction:** Use Supabase Auth's native OAuth 2.1 / OIDC server as identity protocol engine, Google Apps Script for MT-IAM business/domain services, and Supabase PostgreSQL for personnel/identity data. This **replaces the earlier GAS-only OIDC feasibility preference**, without changing the independence of apps and their local permissions. Provider remains public beta; no POC executed. Prior v0.2 documents remain as historical designs and must not be read as the current preferred implementation.
+
+- [Target Architecture v0.3](docs/architecture/TARGET_ARCHITECTURE_v0.3.md)
+- [ADR-005 — Supabase Native OIDC](docs/adr/ADR-005_SUPABASE_NATIVE_OIDC_PROVIDER.md)
+- [POC-02 — Supabase Native SSO Plan](docs/poc/POC-02_SUPABASE_NATIVE_SSO_PLAN.md)
+
+**Critical trade-off:** MT-IAM owns domain and data governance but delegates OAuth/OIDC protocol execution to Supabase Auth (self-hostable components exist; portability/credential migration must be tested). Production status remains BLOCKED.
