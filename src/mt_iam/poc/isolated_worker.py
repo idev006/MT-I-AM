@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
         budget = WorkerBudget(args.memory_mb, args.cpu_seconds)
         if os.name != "nt":
             enforce_posix_budget(budget)
-        with managed_worker_lifetime():
+        with managed_worker_lifetime(budget):
             detail = CHECKS[args.id]()
             print(json.dumps({"status": "LOCAL_CHECK_PASS", "detail": str(detail)}), flush=True)
         return 0
