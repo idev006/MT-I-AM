@@ -19,6 +19,7 @@ packages = ["src/mt_iam"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["full_registry: executes all 52 POCs in real isolated subprocesses (slow integration gate)"]
 
 [tool.ruff]
 target-version = "py312"
