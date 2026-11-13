@@ -58,3 +58,55 @@ def test_too_short_or_large_total_budget_rejected():
     for seconds in [0, 601]:
         with pytest.raises(ValueError):
             repeatability.measure(POCRegistry.from_toml(), selected=['POC-G01-03'], total_timeout_seconds=seconds)
+
+
+def test_checkpoint_records_finished_rounds(tmp_path):
+    import json
+    path = tmp_path / 'checkpoints' / 'run.json'
+    result = repeatability.measure(
+        POCRegistry.from_toml(), selected=['POC-G01-03'], repeats=2,
+        checkpoint_path=path,
+    )
+    persisted = json.loads(path.read_text())
+    assert persisted['stage'] == 'COMPLETE'
+    assert persisted['completed_repeats'] == 2
+    assert persisted['active_round'] is None
+    assert persisted['repeatability_pass'] is True
+    assert persisted['full_poc_verification'] == 'NOT_CERTIFIED'
+    assert persisted['rounds'] == result['rounds']
+    assert not list(path.parent.glob('*.tmp'))
+
+
+def test_checkpoint_persists_failed_round(tmp_path, monkeypatch):
+    import json
+    path = tmp_path / 'failed.json'
+    def fake(self, selected=None, **kwargs):
+        return [RunResult('POC-G01-03', 'TIMEOUT', 'test deadline')]
+    monkeypatch.setattr(repeatability.IsolatedPOCOrchestrator, 'run', fake)
+    report = repeatability.measure(
+        POCRegistry.from_toml(), selected=['POC-G01-03'],
+        repeats=3, checkpoint_path=path,
+    )
+    data = json.loads(path.read_text())
+    assert data['stage'] == 'FAILED'
+    assert data['completed_repeats'] == 1
+    assert not data['repeatability_pass']
+    assert report['completed_repeats'] == 1
+
+
+def test_checkpoint_keeps_running_marker_on_interrupt(tmp_path, monkeypatch):
+    import json
+    path = tmp_path / 'interrupted.json'
+    def interrupted(self, selected=None, **kwargs):
+        raise KeyboardInterrupt()
+    monkeypatch.setattr(repeatability.IsolatedPOCOrchestrator, 'run', interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        repeatability.measure(
+            POCRegistry.from_toml(), selected=['POC-G01-03'],
+            repeats=2, checkpoint_path=path,
+        )
+    saved = json.loads(path.read_text())
+    assert saved['stage'] == 'IN_PROGRESS'
+    assert saved['active_round'] == 1
+    assert saved['completed_repeats'] == 0
+    assert saved['repeatability_pass'] is False
