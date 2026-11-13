@@ -1,3 +1,5 @@
+> **HISTORICAL ADR — PARTIALLY SUPERSEDED by [ADR-007](ADR-007_PYTHON_FIRST_PORTABLE_MODULAR_CORE.md) on 2026-11-13.** GAS-first implementation decision no longer current. Provider-independence, PostgreSQL-only policy and application autonomy remain binding. Read [Target v0.5](../architecture/TARGET_ARCHITECTURE_v0.5_PYTHON_FIRST.md).
+
 # ADR-006 — Provider-Independent MT-IAM; Supabase Database Only
 
 **Status: ACCEPTED — user approved, 2026-11-13.** Risk tier R3. **Supersedes ADR-005** and the implementation assumptions of Target Architecture v0.3 / POC-02.
