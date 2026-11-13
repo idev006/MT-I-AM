@@ -10,6 +10,7 @@ _FIELDS = {
     'poc.orchestrator': {'execution_mode': str, 'max_parallel': int,
                          'fail_fast': bool, 'include_dependencies': bool,
                          'timeout_seconds': int},
+    'poc.resources': {'memory_mb': int, 'cpu_seconds': int},
     'poc.evidence': {'output_directory': str, 'redact_secrets': bool},
     'database': {'provider': str, 'pool_size': int, 'max_overflow': int,
                  'pool_timeout_seconds': int},
@@ -24,6 +25,7 @@ class PlatformSettings:
     project: dict
     registry: dict
     orchestrator: dict
+    resources: dict
     evidence: dict
     database: dict
     security: dict
@@ -37,13 +39,14 @@ class PlatformSettings:
             'project': data.get('project', {}),
             'poc.registry': data.get('poc', {}).get('registry', {}),
             'poc.orchestrator': data.get('poc', {}).get('orchestrator', {}),
+            'poc.resources': data.get('poc', {}).get('resources', {}),
             'poc.evidence': data.get('poc', {}).get('evidence', {}),
             'database': data.get('database', {}), 'security': data.get('security', {}),
             'cloud': data.get('cloud', {}), 'testing': data.get('testing', {}),
         }
         if set(data) - {'project', 'poc', 'database', 'security', 'cloud', 'testing'}:
             raise RegistryError('Unexpected config section')
-        if set(data.get('poc', {})) - {'registry', 'orchestrator', 'evidence'}:
+        if set(data.get('poc', {})) - {'registry', 'orchestrator', 'resources', 'evidence'}:
             raise RegistryError('Unexpected POC config section')
         for section, content in flattened.items():
             if not isinstance(content, dict) or set(content) - set(_FIELDS[section]):
@@ -60,6 +63,11 @@ class PlatformSettings:
             raise RegistryError('Invalid bounded worker limit')
         if not 1 <= flattened['poc.orchestrator'].get('timeout_seconds', 15) <= 300:
             raise RegistryError('Timeout outside bounded range')
+        from mt_iam.poc.resource_budget import WorkerBudget
+        try:
+            WorkerBudget(**flattened['poc.resources'])
+        except (ValueError, TypeError) as exc:
+            raise RegistryError('Invalid POC resource budget') from exc
         if flattened['security'].get('allow_remote_execution', False):
             raise RegistryError('Remote execution must remain disabled in this lab')
         if flattened['security'].get('allow_dynamic_plugins', False):
