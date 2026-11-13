@@ -14,6 +14,10 @@ fail_fast = false
 timeout_seconds = 15
 include_dependencies = true
 
+[poc.resources]
+memory_mb = 768
+cpu_seconds = 30
+
 [poc.evidence]
 output_directory = "artifacts/poc-results"
 redact_secrets = true
