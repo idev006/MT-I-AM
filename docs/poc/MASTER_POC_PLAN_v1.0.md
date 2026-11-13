@@ -1,3 +1,5 @@
+> **LIVE TRACKING UPDATE (2026-11-13):** 52 unique POC GitHub Issues exist, grouped under 12 Epics; read their open/closed state from [Issues](https://github.com/idev006/MT-I-AM/issues), not static columns below. [Python runner source](../../src/mt_iam/poc/) and [executed local check evidence](POC52_EXECUTION_REPORT_v0.1.md) are now available: 30 LOCAL_CHECK_PASS, 22 BLOCKED, **0 POCs verified full PASS**. Do not edit master-plan verification columns as a second live status system. [Projects board setup #18](https://github.com/idev006/MT-I-AM/issues/18) remains BLOCKED.
+
 > **PROGRESS SSOT NOTE (2026-11-13):** Live task ownership/flow status is maintained through GitHub Issues and one derived Kanban view per [Kanban Governance](../delivery/AGILE_KANBAN_SSOT_GOVERNANCE_v1.0.md). Any NOT RUN column in this versioned plan is a *baseline snapshot*, not the current dynamic status; actual POC outcome comes only from evidence with reviewer confirmation. Do not maintain a second manually edited progress table here.
 
 # MT-IAM Master POC Plan & Verification Matrix v1.0
