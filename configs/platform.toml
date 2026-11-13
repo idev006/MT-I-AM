@@ -1,0 +1,37 @@
+# Configurable sections: version-controlled nonsecret defaults only.
+[project]
+name = "MT-IAM"
+environment = "local"
+
+[poc.registry]
+path = "configs/poc_registry.toml"
+allow_new = true
+
+[poc.orchestrator]
+execution_mode = "sequential"
+max_parallel = 1
+fail_fast = false
+include_dependencies = true
+
+[poc.evidence]
+output_directory = "artifacts/poc-results"
+redact_secrets = true
+
+[database]
+provider = "postgresql"
+pool_size = 2
+max_overflow = 0
+pool_timeout_seconds = 10
+
+[security]
+allow_remote_execution = false
+allow_dynamic_plugins = false
+require_review_for_new_handlers = true
+
+[cloud]
+enabled = false
+max_instances = 1
+
+[testing]
+require_negative_tests = true
+require_cleanup_tests = true
