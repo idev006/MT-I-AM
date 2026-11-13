@@ -1,0 +1,26 @@
+name: POC baseline local checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  python-local-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[test,database]'
+      - run: python -m pytest -v tests
+      - run: python -m ruff check src tests
+      - run: python -m mt_iam.poc.runner --output poc52-local-results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: poc52-local-baseline
+          path: poc52-local-results.json
+# The runner intentionally exits 0 with BLOCKED cases for local CI.
+# Release gates MUST use --require-all-pass and real external POC evidence.
