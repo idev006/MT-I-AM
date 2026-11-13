@@ -7,8 +7,10 @@ if (-not (Test-Path '.venv\Scripts\python.exe')) {
 $Python = '.venv\Scripts\python.exe'
 & $Python -m pip install -e '.[test,database]'
 if ($LASTEXITCODE -ne 0) { throw 'Install failed' }
-& $Python -m pytest -v tests
-if ($LASTEXITCODE -ne 0) { throw 'pytest failed' }
+& $Python -m pytest -q -ra -m "not full_registry" tests
+if ($LASTEXITCODE -ne 0) { throw 'Fast test gate failed' }
+& $Python -m pytest -q -ra -m full_registry tests
+if ($LASTEXITCODE -ne 0) { throw '52 POC registry test gate failed' }
 & $Python -m ruff check src tests
 if ($LASTEXITCODE -ne 0) { throw 'ruff check failed' }
 & $Python -m mt_iam.poc.platform_cli --config configs/platform.toml --report artifacts/poc-results/local.json
