@@ -105,3 +105,8 @@ Create one project titled `MT-IAM — EA Core Delivery`, select **Board** view, 
 | Live status synchronization from Issues | NOT RUN |
 | Actual POC execution results | NOT RUN |
 | Production approval | BLOCKED |
+
+## Activation record (2026-11-13)
+- Created 12 Epic Issues #1–#12 mapping to G01–G12 and five first-wave POC Issues #13–#17 (G05-01, G10-01, G01-01, G02-01, G02-04). Existing GitHub Issues are the live work records.
+- GitHub Projects board activation is explicitly tracked by [Issue #18](https://github.com/idev006/MT-I-AM/issues/18) and remains **BLOCKED**, as the connected GitHub interface has no Projects configuration action. No board URL has been invented; add a verified URL here only after owner configures the real board.
+- Remaining POC IDs are design registry entries, intentionally not 47 extra issue cards until they are ready for scoped execution.
