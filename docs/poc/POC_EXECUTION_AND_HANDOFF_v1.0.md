@@ -1,3 +1,5 @@
+> **CURRENT HANDOFF (2026-11-13):** [Python POC52 runner](../../src/mt_iam/poc/runner.py), [52-case execution report](POC52_EXECUTION_REPORT_v0.1.md), [Lab quickstart](POC52_LAB_QUICKSTART_v0.1.md) and all **52 linked GitHub POC Issues** are now available. The five initial Issues are no longer the whole tracked work scope. GitHub Projects board itself is **not yet configured**; see [#18](https://github.com/idev006/MT-I-AM/issues/18). Local checks do not certify real Supabase/OIDC/Cloud Run POCs.
+
 > **PROGRESS SSOT NOTE (2026-11-13):** Live task ownership/flow status is maintained through GitHub Issues and one derived Kanban view per [Kanban Governance](../delivery/AGILE_KANBAN_SSOT_GOVERNANCE_v1.0.md). Any NOT RUN column in this versioned plan is a *baseline snapshot*, not the current dynamic status; actual POC outcome comes only from evidence with reviewer confirmation. Do not maintain a second manually edited progress table here.
 
 # MT-IAM POC Execution & Team Handoff Playbook v1.0
