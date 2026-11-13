@@ -13,6 +13,7 @@ from time import perf_counter
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 from mt_iam.poc.isolated import run_isolated
+from mt_iam.poc.resource_budget import WorkerBudget
 from typing import Callable
 import json
 import re
@@ -200,7 +201,8 @@ class IsolatedPOCOrchestrator:
     """
 
     def __init__(self, registry: POCRegistry, *, max_workers: int = 1,
-                 timeout_seconds: float = 15, fail_fast: bool = False):
+                 timeout_seconds: float = 15, fail_fast: bool = False,
+                 budget: WorkerBudget | None = None):
         if not 1 <= max_workers <= 4:
             raise RegistryError("Worker count must be 1..4 for local POC lab")
         if not 0.1 <= timeout_seconds <= 300:
@@ -209,6 +211,7 @@ class IsolatedPOCOrchestrator:
         self.max_workers = max_workers
         self.timeout_seconds = timeout_seconds
         self.fail_fast = fail_fast
+        self.budget = budget or WorkerBudget()
 
     def run(self, selected: list[str] | None = None, *, dry_run: bool = False,
             cancel_event: Event | None = None) -> list[RunResult]:
@@ -220,7 +223,7 @@ class IsolatedPOCOrchestrator:
         def execute(spec: POCSpec) -> RunResult:
             started = perf_counter()
             out = run_isolated(spec.id, timeout_seconds=self.timeout_seconds,
-                               cancel_event=cancelled)
+                               cancel_event=cancelled, budget=self.budget)
             return RunResult(spec.id, out.status, out.detail,
                              round((perf_counter() - started) * 1000, 2))
 
