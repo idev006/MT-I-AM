@@ -1,3 +1,5 @@
+> **PROGRESS SSOT NOTE (2026-11-13):** Live task ownership/flow status is maintained through GitHub Issues and one derived Kanban view per [Kanban Governance](../delivery/AGILE_KANBAN_SSOT_GOVERNANCE_v1.0.md). Any NOT RUN column in this versioned plan is a *baseline snapshot*, not the current dynamic status; actual POC outcome comes only from evidence with reviewer confirmation. Do not maintain a second manually edited progress table here.
+
 # MT-IAM Master POC Plan & Verification Matrix v1.0
 
 **Status: APPROVED DIRECTION (POC-FIRST); individual experiments NOT RUN. Risk: R3.** Baseline 2026-11-13.
