@@ -1,7 +1,8 @@
-"""Bounded, trusted-handler subprocess runner for local POC checks only.
+"""Trusted POC worker isolation with bounded IO, deadlines and process cleanup.
 
-Never execute a command or Python import path supplied by TOML. Only a POC ID
-validated by the canonical CHECKS allowlist can reach this module.
+A TOML file must NEVER determine a Python import, shell command or executable.
+Only reviewed built-in POC IDs in CHECKS can be executed. This is local isolation,
+not a production-grade OS sandbox against malicious Python code.
 """
 from __future__ import annotations
 
@@ -11,10 +12,12 @@ import os
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 from time import monotonic
 
 MAX_DETAIL_CHARS = 1600
+MAX_OUTPUT_BYTES = 65536
 
 
 @dataclass(frozen=True)
@@ -23,86 +26,112 @@ class IsolatedResult:
     detail: str
 
 
-def _terminate_tree(process: subprocess.Popen[str]) -> None:
-    """Terminate a process group on POSIX / child tree on Windows, then reap."""
-    if process.poll() is not None:
-        process.communicate(timeout=1)
-        return
-    if os.name == "nt":
-        subprocess.run(
-            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
-            capture_output=True, timeout=5, check=False,
-        )
-    else:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+def _terminate_tree(process: subprocess.Popen) -> None:
+    """Kill an owned process group/tree and reap it, including on error paths."""
+    if process.poll() is None:
+        if os.name == "nt":
+            try:
+                subprocess.run(
+                    ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                    stdin=subprocess.DEVNULL, capture_output=True, timeout=5, check=False,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                process.kill()
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
     try:
-        process.communicate(timeout=5)
+        process.wait(timeout=5)
     except subprocess.TimeoutExpired:
         process.kill()
-        process.communicate(timeout=5)
+        process.wait(timeout=5)
+
+
+def _safe_worker_env() -> dict[str, str]:
+    """Minimal environment; never propagate DB credentials or cloud tokens."""
+    names = {
+        "PATH", "PYTHONPATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "TMPDIR",
+        "HOME", "LANG", "LC_ALL", "VIRTUAL_ENV", "PYTHONIOENCODING",
+        "PYTHONDONTWRITEBYTECODE", "PYTHONUTF8",
+    }
+    return {key: value for key, value in os.environ.items() if key.upper() in names}
+
+
+def _spawn_worker(poc_id: str, **kwargs) -> subprocess.Popen:
+    """Create an allowlisted Python worker; separate seam for lifecycle tests."""
+    return subprocess.Popen(
+        [sys.executable, "-m", "mt_iam.poc.isolated_worker", "--id", poc_id],
+        **kwargs,
+    )
 
 
 def run_isolated(
     poc_id: str, *, timeout_seconds: float = 15,
     cancel_event: threading.Event | None = None,
 ) -> IsolatedResult:
+    """Run one trusted local handler with hard parent deadline and bounded output.
+
+    TemporaryFile-backed pipes prevent unbounded RAM use if worker writes large
+    output. This is NOT a CPU/RAM sandbox; such limits need OS-level controls.
+    """
     from mt_iam.poc.checks import CHECKS, EXTERNAL
 
     if poc_id not in CHECKS or poc_id in EXTERNAL:
-        return IsolatedResult("BLOCKED", "Handler is not on the trusted local allowlist")
+        return IsolatedResult("BLOCKED", "No trusted local handler")
     if not 0.1 <= timeout_seconds <= 300:
-        raise ValueError("Timeout outside approved range")
+        raise ValueError("Timeout outside 0.1..300 seconds")
     if cancel_event is not None and cancel_event.is_set():
         return IsolatedResult("CANCELLED", "Cancelled before process start")
 
-    # Launch by module identifier, never from config-supplied command strings.
-    # Preserve test package root while allowing standalone local editable installs.
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "mt_iam.poc.isolated_worker", "--id", poc_id],
-        stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, encoding="utf-8", errors="replace",
-        start_new_session=(os.name != "nt"),
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
-        env={k: v for k, v in os.environ.items() if k.upper() in {
-            "PATH", "PYTHONPATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP",
-            "HOME", "LANG", "LC_ALL", "VIRTUAL_ENV", "PYTHONIOENCODING",
-            "PYTHONDONTWRITEBYTECODE"}},
-    )
-    started = monotonic()
-    try:
-        while proc.poll() is None:
-            if cancel_event is not None and cancel_event.is_set():
-                _terminate_tree(proc)
-                return IsolatedResult("CANCELLED", "Cancellation requested")
-            if monotonic() - started >= timeout_seconds:
-                _terminate_tree(proc)
-                return IsolatedResult("TIMEOUT", "Trusted handler deadline exceeded")
+    with tempfile.TemporaryFile(mode="w+b") as stdout_file, tempfile.TemporaryFile(mode="w+b") as stderr_file:
+        try:
+            process = _spawn_worker(
+                poc_id,
+                stdin=subprocess.DEVNULL,
+                stdout=stdout_file,
+                stderr=stderr_file,
+                start_new_session=os.name != "nt",
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+                env=_safe_worker_env(),
+            )
+        except OSError:
+            return IsolatedResult("FAIL", "Unable to start trusted worker")
+        start = monotonic()
+        try:
+            while process.poll() is None:
+                if cancel_event is not None and cancel_event.is_set():
+                    _terminate_tree(process)
+                    return IsolatedResult("CANCELLED", "Cancellation requested")
+                if monotonic() - start >= timeout_seconds:
+                    _terminate_tree(process)
+                    return IsolatedResult("TIMEOUT", "Trusted handler deadline exceeded")
+                if (os.fstat(stdout_file.fileno()).st_size > MAX_OUTPUT_BYTES
+                        or os.fstat(stderr_file.fileno()).st_size > MAX_OUTPUT_BYTES):
+                    _terminate_tree(process)
+                    return IsolatedResult("FAIL", "Trusted handler output exceeded limit")
+                try:
+                    process.wait(timeout=min(0.05, max(0.01, timeout_seconds / 10)))
+                except subprocess.TimeoutExpired:
+                    continue
+            if (os.fstat(stdout_file.fileno()).st_size > MAX_OUTPUT_BYTES
+                    or os.fstat(stderr_file.fileno()).st_size > MAX_OUTPUT_BYTES):
+                return IsolatedResult("FAIL", "Trusted handler output exceeded limit")
+            if process.returncode != 0:
+                return IsolatedResult("FAIL", f"Handler process failed, exit={process.returncode}")
+            stdout_file.seek(0)
+            raw = stdout_file.read(MAX_OUTPUT_BYTES + 1)
             try:
-                # Poll at bounded intervals without awaiting a potentially non-terminating worker.
-                stdout, _stderr = proc.communicate(timeout=min(0.1, max(0.01, timeout_seconds / 10)))
-                break
-            except subprocess.TimeoutExpired:
-                continue
-        else:
-            stdout, _stderr = proc.communicate(timeout=2)
-        if proc.returncode != 0:
-            return IsolatedResult("FAIL", f"Handler process failed, exit={proc.returncode}")
-        if len(stdout) > 65536:
-            return IsolatedResult("FAIL", "Handler output exceeded limit")
-        payload = json.loads(stdout)
-        if not isinstance(payload, dict) or payload.get("status") != "LOCAL_CHECK_PASS":
-            return IsolatedResult("FAIL", "Handler returned an invalid result")
-        detail = payload.get("detail")
-        if not isinstance(detail, str) or len(detail) > MAX_DETAIL_CHARS:
-            return IsolatedResult("FAIL", "Handler returned an invalid detail")
-        return IsolatedResult("LOCAL_CHECK_PASS", detail)
-    except (ValueError, json.JSONDecodeError, subprocess.SubprocessError, OSError):
-        if proc.poll() is None:
-            _terminate_tree(proc)
-        return IsolatedResult("FAIL", "Handler transport or output validation failed")
-    finally:
-        if proc.poll() is None:
-            _terminate_tree(proc)
+                payload = json.loads(raw.decode("utf-8", errors="strict"))
+            except (ValueError, UnicodeDecodeError):
+                return IsolatedResult("FAIL", "Invalid worker result")
+            if not isinstance(payload, dict) or payload.get("status") != "LOCAL_CHECK_PASS":
+                return IsolatedResult("FAIL", "Unexpected worker result")
+            detail = payload.get("detail")
+            if not isinstance(detail, str) or len(detail) > MAX_DETAIL_CHARS:
+                return IsolatedResult("FAIL", "Invalid worker detail")
+            return IsolatedResult("LOCAL_CHECK_PASS", detail)
+        finally:
+            if process.poll() is None:
+                _terminate_tree(process)
