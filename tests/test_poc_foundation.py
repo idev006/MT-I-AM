@@ -18,7 +18,7 @@ def test_path_manager_rejects_traversal():
     with pytest.raises(ValueError):
         manager.project_file("../secrets")
     with pytest.raises(ValueError):
-        manager.project_file("/etc/passwd")
+        manager.project_file(str(Path.cwd().anchor + "outside-root"))
 
 def test_scoped_temp_files_are_removed():
     with TemporaryDirectory() as _:
