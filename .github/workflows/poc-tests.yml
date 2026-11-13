@@ -1,28 +1,48 @@
-name: POC baseline local checks
+name: MT-IAM POC local verification (not release certification)
+
 on:
   push:
     branches: [main]
   pull_request:
+
 permissions:
   contents: read
+
 jobs:
-  python-local-checks:
-    runs-on: ubuntu-latest
+  poc-platform-matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - run: python -m pip install -e '.[test,database]'
-      - run: python -m pytest -v tests
-      - run: python -m ruff check src tests
-      - run: python -m mt_iam.poc.runner --output poc52-local-results.json
-      - run: python -m mt_iam.poc.platform_cli --config configs/platform.toml --report poc-platform-local-results.json
-      - run: python -m mt_iam.poc.platform_cli --config configs/platform.toml --dry-run --id POC-G05-04
-      - uses: actions/upload-artifact@v4
+          python-version: ${{ matrix.python-version }}
+      - name: Install test and database dependencies
+        run: python -m pip install -e ".[test,database]"
+      - name: Local deterministic and isolated tests
+        run: python -m pytest -v tests
+      - name: Ruff static style checks
+        run: python -m ruff check src tests
+      - name: 52-item local-only registry checks
+        run: python -m mt_iam.poc.runner --output poc52-local-results.json
+      - name: Isolated orchestrator (external checks remain BLOCKED)
+        run: python -m mt_iam.poc.platform_cli --config configs/platform.toml --report poc-platform-v03-results.json
+      - name: Dry run security-critical case
+        run: python -m mt_iam.poc.platform_cli --config configs/platform.toml --dry-run --id POC-G05-04
+      - name: Upload local-only diagnostic artifacts
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: poc52-local-baseline
-          path: |\n            poc52-local-results.json\n            poc-platform-local-results.json
-# The runner intentionally exits 0 with BLOCKED cases for local CI.
-# Release gates MUST use --require-all-pass and real external POC evidence.
+          name: poc-local-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: |
+            poc52-local-results.json
+            poc-platform-v03-results.json
+          if-no-files-found: ignore
+
+# A CI job PASS validates only synthetic/local checks, not OIDC/Supabase/Cloud Run.
+# Full POC acceptance needs separate real-provider, security and reviewer evidence.
