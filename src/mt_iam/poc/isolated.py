@@ -15,6 +15,7 @@ import sys
 import tempfile
 import threading
 from time import monotonic
+from mt_iam.poc.resource_budget import WorkerBudget
 
 MAX_DETAIL_CHARS = 1600
 MAX_OUTPUT_BYTES = 65536
@@ -63,8 +64,11 @@ def _safe_worker_env() -> dict[str, str]:
 
 def _spawn_worker(poc_id: str, **kwargs) -> subprocess.Popen:
     """Create an allowlisted Python worker; separate seam for lifecycle tests."""
+    env = kwargs.get("env", {})
+    budget = WorkerBudget(int(env["MT_POC_MEMORY_MB"]), int(env["MT_POC_CPU_SECONDS"]))
     return subprocess.Popen(
-        [sys.executable, "-m", "mt_iam.poc.isolated_worker", "--id", poc_id],
+        [sys.executable, "-m", "mt_iam.poc.isolated_worker", "--id", poc_id,
+         "--memory-mb", str(budget.memory_mb), "--cpu-seconds", str(budget.cpu_seconds)],
         **kwargs,
     )
 
@@ -72,6 +76,7 @@ def _spawn_worker(poc_id: str, **kwargs) -> subprocess.Popen:
 def run_isolated(
     poc_id: str, *, timeout_seconds: float = 15,
     cancel_event: threading.Event | None = None,
+    budget: WorkerBudget | None = None,
 ) -> IsolatedResult:
     """Run one trusted local handler with hard parent deadline and bounded output.
 
@@ -82,6 +87,7 @@ def run_isolated(
 
     if poc_id not in CHECKS or poc_id in EXTERNAL:
         return IsolatedResult("BLOCKED", "No trusted local handler")
+    budget = budget or WorkerBudget()
     if not 0.1 <= timeout_seconds <= 300:
         raise ValueError("Timeout outside 0.1..300 seconds")
     if cancel_event is not None and cancel_event.is_set():
@@ -96,7 +102,8 @@ def run_isolated(
                 stderr=stderr_file,
                 start_new_session=os.name != "nt",
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
-                env=_safe_worker_env(),
+                env={**_safe_worker_env(), "MT_POC_MEMORY_MB": str(budget.memory_mb),
+                     "MT_POC_CPU_SECONDS": str(budget.cpu_seconds)},
             )
         except OSError:
             return IsolatedResult("FAIL", "Unable to start trusted worker")
