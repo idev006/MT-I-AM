@@ -1,3 +1,5 @@
+> **CURRENT LIVE ISSUE STATUS (2026-11-13):** 52 unique OPEN POC Issues and 12 OPEN Epic Issues now exist. All 52 POCs remain **unverified full PASS**; the [local runner snapshot](../poc/POC52_EXECUTION_REPORT_v0.1.md) records 30 LOCAL_CHECK_PASS and 22 BLOCKED, not live Kanban workflow status. Duplicate Issues #38–#40 were CLOSED as duplicates of #35–#37. The actual GitHub Projects board is **NOT CONFIGURED**; [Issue #18](https://github.com/idev006/MT-I-AM/issues/18) remains the board-activation blocker. Do not interpret older activation counts below as current.
+
 # MT-IAM Agile Kanban & Single Source of Truth Governance v1.0
 
 **Decision status: PROPOSED operational governance (2026-11-13).** Architecture risk R3. **Board activation: NOT RUN** because the current integration can manage GitHub Issues but not create/configure a GitHub Projects board. Do not claim a board already exists.
