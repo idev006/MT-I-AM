@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mt-iam"
+version = "0.0.1"
+description = "MT-IAM POC-first portable Python lab; NOT a production identity provider"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "pydantic-settings>=2.6,<3",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8,<10",
+  "httpx>=0.27,<1",
+  "ruff>=0.8,<1",
+]
+database = [
+  "sqlalchemy>=2,<3",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.13,<2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mt_iam"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
