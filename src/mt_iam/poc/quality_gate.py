@@ -9,6 +9,7 @@ import json
 import re
 
 from mt_iam.poc.platform import POCRegistry
+from mt_iam.poc.artifact_integrity import verify_artifacts
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
@@ -81,12 +82,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Check independent POC acceptance evidence")
     parser.add_argument("evidence", type=Path)
     parser.add_argument("--registry", type=Path, default=None)
+    parser.add_argument("--artifact-root", type=Path, default=None,
+                        help="Required for CLI PASS: validate actual local evidence file digests")
     args = parser.parse_args(argv)
     try:
         if args.evidence.stat().st_size > 1024 * 1024:
             raise ValueError("Evidence exceeds 1 MiB")
         payload = json.loads(args.evidence.read_text(encoding="utf-8"))
         gate = check_evidence(payload, POCRegistry.from_toml(args.registry))
+        if gate.accepted:
+            if args.artifact_root is None:
+                print('BLOCKED: --artifact-root required to validate evidence bytes')
+                return 2
+            audit = verify_artifacts(payload, args.artifact_root)
+            if not audit.verified:
+                print('BLOCKED: ' + '; '.join(audit.errors))
+                return 2
     except (OSError, ValueError, KeyError, TypeError) as exc:
         print(f"BLOCKED: Cannot validate evidence ({type(exc).__name__})")
         return 2
