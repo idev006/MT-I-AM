@@ -9,6 +9,8 @@ from pathlib import Path
 from statistics import mean
 from threading import Event, Timer
 from time import perf_counter
+from datetime import datetime, timezone
+import os
 
 from mt_iam.poc.platform import IsolatedPOCOrchestrator, POCRegistry, RegistryError
 from mt_iam.poc.resource_budget import WorkerBudget
@@ -25,7 +27,8 @@ class RepeatabilityRound:
 
 def measure(registry: POCRegistry, *, selected: list[str] | None = None,
             repeats: int = 2, max_workers: int = 2, timeout_seconds: float = 15,
-            budget: WorkerBudget | None = None, total_timeout_seconds: float = 90) -> dict:
+            budget: WorkerBudget | None = None, total_timeout_seconds: float = 90,
+            checkpoint_path: Path | None = None) -> dict:
     """Require identical complete local results; external checks cannot become PASS."""
     if type(repeats) is not int or not 1 <= repeats <= 10:
         raise ValueError('repeats must be in 1..10')
@@ -38,7 +41,40 @@ def measure(registry: POCRegistry, *, selected: list[str] | None = None,
     )
     rounds: list[RepeatabilityRound] = []
     baseline: dict[str, str] | None = None
+
+    def publish(*, stage: str, active_round: int | None = None) -> dict:
+        passed = stage == 'COMPLETE' and len(rounds) == repeats and all(
+            row.matched_baseline for row in rounds
+        )
+        summary = {
+            'schema_version': 2,
+            'scope': 'LOCAL_DIAGNOSTICS_ONLY',
+            'full_poc_verification': 'NOT_CERTIFIED',
+            'requested_repeats': repeats,
+            'completed_repeats': len(rounds),
+            'planned_ids': expected_ids,
+            'rounds': [asdict(row) for row in rounds],
+            'mean_duration_ms': round(mean(row.duration_ms for row in rounds), 2) if rounds else None,
+            'repeatability_pass': passed,
+            'per_round_timeout_seconds': total_timeout_seconds,
+            'stage': stage,
+            'active_round': active_round,
+            'updated_at_utc': datetime.now(timezone.utc).isoformat(),
+        }
+        if checkpoint_path is not None:
+            target = Path(checkpoint_path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temp = target.with_name(target.name + f'.{os.getpid()}.tmp')
+            try:
+                temp.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+                os.replace(temp, target)
+            finally:
+                temp.unlink(missing_ok=True)
+        return summary
+
+    publish(stage='IN_PROGRESS', active_round=1)
     for index in range(repeats):
+        publish(stage='IN_PROGRESS', active_round=index + 1)
         start = perf_counter()
         cancelled = Event()
         timer = Timer(total_timeout_seconds, cancelled.set)
@@ -66,21 +102,10 @@ def measure(registry: POCRegistry, *, selected: list[str] | None = None,
         rounds.append(RepeatabilityRound(
             index + 1, elapsed, dict(Counter(statuses.values())), len(result), matched
         ))
+        publish(stage='IN_PROGRESS' if matched else 'FAILED', active_round=(index + 2 if matched and index + 1 < repeats else None))
         if not matched:
             break
-    passed = len(rounds) == repeats and all(row.matched_baseline for row in rounds)
-    return {
-        'schema_version': 1,
-        'scope': 'LOCAL_DIAGNOSTICS_ONLY',
-        'full_poc_verification': 'NOT_CERTIFIED',
-        'requested_repeats': repeats,
-        'completed_repeats': len(rounds),
-        'planned_ids': expected_ids,
-        'rounds': [asdict(row) for row in rounds],
-        'mean_duration_ms': round(mean(row.duration_ms for row in rounds), 2),
-        'repeatability_pass': passed,
-        'per_round_timeout_seconds': total_timeout_seconds,
-    }
+    return publish(stage='COMPLETE' if len(rounds) == repeats and all(row.matched_baseline for row in rounds) else 'FAILED')
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -97,6 +122,7 @@ def main(argv: list[str] | None = None) -> int:
             POCRegistry.from_toml(), selected=args.selected,
             repeats=args.repeats, max_workers=args.workers,
             timeout_seconds=args.timeout, total_timeout_seconds=args.round_timeout,
+            checkpoint_path=args.report,
         )
     except (ValueError, RegistryError) as exc:
         parser.error(str(exc))
