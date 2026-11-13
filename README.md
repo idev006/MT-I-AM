@@ -25,3 +25,22 @@ GAS Web Apps cannot freely set response headers and secure session cookies like 
 - [Architecture decisions](docs/adr/ADR-001_SYSTEM_BOUNDARIES.md)
 
 This public repository contains specifications only; never commit passwords, personal records, tokens or keys.
+
+
+## Architecture v0.2 — approved brief, detailed designs pending technical review
+- [Detailed Architecture](docs/architecture/DETAILED_ARCHITECTURE_v0.2.md)
+- [Data Model / ERD](docs/data/DATA_MODEL_v0.2.md)
+- [OIDC / SSO Protocol Profile](docs/protocol/MT-ISP-002_OIDC_PROFILE_v0.2.md)
+- [Directory API Contract](docs/protocol/MT-ISP-003_DIRECTORY_API_v0.2.md)
+- [ADR-003 Protocol Boundary](docs/adr/ADR-003_IDENTITY_PROTOCOL_BOUNDARY.md)
+- [ADR-004 Directory SSOT and Application Autonomy](docs/adr/ADR-004_DATA_SSOT_AND_APP_AUTONOMY.md)
+- [Threat Model v0.2](docs/security/THREAT_MODEL_v0.2.md)
+- [Project Delivery Plan](docs/delivery/DELIVERY_PLAN_v0.2.md)
+- [Acceptance Matrix / KPI Contracts](docs/delivery/ACCEPTANCE_MATRIX_v0.2.md)
+- [Operations and Portability](docs/operations/OPERATIONS_AND_PORTABILITY_v0.2.md)
+
+### Evidence status
+Architecture documents: written. Runtime SSO feasibility, protocol conformance, integration, security and load tests: **NOT RUN**. Production release: **BLOCKED**. Public code repository must not contain secrets or real personnel data.
+
+### Review gates
+Detailed design files are proposed specifications. The earlier Architecture Brief v0.2 was approved as the basis for writing them; no claim that a working solution or all detailed ADRs have separately passed security review.
