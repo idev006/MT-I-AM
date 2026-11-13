@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+coverage/
+.clasp.json
+*.pem
+*.key
+secrets/
+credentials/
+*.sqlite
+*.db
