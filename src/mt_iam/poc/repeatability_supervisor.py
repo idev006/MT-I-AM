@@ -16,6 +16,8 @@ import sys
 from time import monotonic, sleep
 from typing import Sequence
 
+from mt_iam.poc.resource_telemetry import TreeTelemetry
+
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 
 
@@ -88,9 +90,12 @@ def _supervise_command(command: Sequence[str], *, report: Path,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
     )
     started = monotonic()
+    telemetry = TreeTelemetry()
+    telemetry.sample(process.pid)
     timed_out = False
     try:
         while process.poll() is None:
+            telemetry.sample(process.pid)
             if monotonic() - started >= hard_timeout_seconds:
                 timed_out = True
                 break
@@ -98,7 +103,8 @@ def _supervise_command(command: Sequence[str], *, report: Path,
     except BaseException:
         _end_tree(process)
         partial = _checkpoint(report)
-        partial.update(stage="INTERRUPTED", repeatability_pass=False,
+        partial.update(resource_telemetry=telemetry.as_report(),
+                       stage="INTERRUPTED", repeatability_pass=False,
                        supervisor_status="INTERRUPTED",
                        updated_at_utc=datetime.now(timezone.utc).isoformat())
         _atomic_report(report, partial)
@@ -110,13 +116,15 @@ def _supervise_command(command: Sequence[str], *, report: Path,
     if timed_out:
         _end_tree(process)
         partial = _checkpoint(report)
-        partial.update(stage="TIMEOUT", repeatability_pass=False,
+        partial.update(resource_telemetry=telemetry.as_report(),
+                       stage="TIMEOUT", repeatability_pass=False,
                        supervisor_status="TIMEOUT",
                        updated_at_utc=datetime.now(timezone.utc).isoformat())
         _atomic_report(report, partial)
         return 124
 
     data = _checkpoint(report)
+    data["resource_telemetry"] = telemetry.as_report()
     accepted = (
         process.returncode == 0
         and data.get("stage") == "COMPLETE"
@@ -134,6 +142,7 @@ def _supervise_command(command: Sequence[str], *, report: Path,
                     updated_at_utc=datetime.now(timezone.utc).isoformat())
         _atomic_report(report, data)
         return 1
+    _atomic_report(report, data)
     return 0
 
 
