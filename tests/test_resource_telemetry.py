@@ -13,9 +13,13 @@ def test_live_process_tree_memory_observation():
     worker = subprocess.Popen([sys.executable, '-c', program])
     try:
         sampler = TreeTelemetry()
-        time.sleep(.25)
-        sampler.sample(worker.pid)
-        assert sampler.samples == 1
+        deadline = time.monotonic() + 1.5
+        while time.monotonic() < deadline:
+            sampler.sample(worker.pid)
+            if sampler.peak_tree_rss_bytes >= 20 * 1024 * 1024:
+                break
+            time.sleep(.05)
+        assert sampler.samples >= 1
         assert sampler.peak_process_count >= 1
         assert sampler.peak_tree_rss_bytes >= 20 * 1024 * 1024
         report = sampler.as_report()
