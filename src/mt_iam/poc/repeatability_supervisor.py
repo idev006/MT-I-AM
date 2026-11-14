@@ -92,10 +92,13 @@ def _supervise_command(command: Sequence[str], *, report: Path,
     started = monotonic()
     telemetry = TreeTelemetry()
     telemetry.sample(process.pid)
+    last_sample = monotonic()
     timed_out = False
     try:
         while process.poll() is None:
-            telemetry.sample(process.pid)
+            if monotonic() - last_sample >= 0.25:
+                telemetry.sample(process.pid)
+                last_sample = monotonic()
             if monotonic() - started >= hard_timeout_seconds:
                 timed_out = True
                 break
